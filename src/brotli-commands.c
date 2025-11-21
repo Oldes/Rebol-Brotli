@@ -277,9 +277,9 @@ int DecompressBrotli(const REBYTE *input, REBLEN len, REBLEN limit, REBSER **out
 	return 1;
 
 error:
-	int error = BrotliDecoderGetErrorCode(decoder);
+	res = BrotliDecoderGetErrorCode(decoder);
 	//BrotliDecHandle_free(hob);
-	return error;
+	return res;
 }
 
 COMMAND cmd_compress(RXIFRM *frm, void *ctx) {
@@ -431,7 +431,7 @@ COMMAND cmd_write(RXIFRM *frm, void *ctx) {
 
 		BROTLI_BOOL res = BrotliEncoderCompressStream(
 				state, op,
-				&available_in,  data ? &inp : NULL,
+				&available_in,  data ? (const uint8_t **)&inp : NULL,
 				&available_out, &out, 0);
 		debug_print("ENCODE result: %u available_in: %lu available_out: %lu \n", res, available_in, available_out);
 		SERIES_TAIL(buffer) = SERIES_REST(buffer) - available_out;
@@ -446,7 +446,7 @@ COMMAND cmd_write(RXIFRM *frm, void *ctx) {
 
 		BrotliDecoderResult res = BrotliDecoderDecompressStream(
 				state,
-				&available_in,  &inp,
+				&available_in,  (const uint8_t **)&inp,
 				&available_out, &out, 0);
 		debug_print("DECODE result: %u available_in: %lu available_out: %lu\n", res, available_in, available_out);
 		SERIES_TAIL(buffer) = SERIES_REST(buffer) - available_out;

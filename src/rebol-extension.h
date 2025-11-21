@@ -3584,7 +3584,7 @@ typedef struct rebol_ext_api {
 	REBCNT (*encode_utf8_char)(REBYTE *dst, REBU32 chr);
 	void* (*mem_alloc)(void *opaque, size_t size);
 	void (*mem_free)(void* opaque, void* address);
-	int (*register_compress_method)(const char* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder);
+	int (*register_compress_method)(const REBYTE* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder);
 } RL_LIB;
 
 // Extension entry point functions:
@@ -4478,7 +4478,7 @@ extern RL_LIB *RL;  // is passed to the RX_Init() function
 
 #define RL_REGISTER_COMPRESS_METHOD(a,b,c) RL->register_compress_method(a,b,c)
 /*
-**	int RL_Register_Compress_Method(const char* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder)
+**	int RL_Register_Compress_Method(const REBYTE* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder)
 **
 **	Register external compression functions.
 **
@@ -4546,7 +4546,7 @@ RL_API REBSER* RL_Struct_Spec(REBCNT id);
 RL_API REBCNT RL_Encode_UTF8_Char(REBYTE *dst, REBU32 chr);
 RL_API void* RL_Mem_Alloc(void *opaque, size_t size);
 RL_API void RL_Mem_Free(void* opaque, void* address);
-RL_API int RL_Register_Compress_Method(const char* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder);
+RL_API int RL_Register_Compress_Method(const REBYTE* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder);
 
 #endif
 

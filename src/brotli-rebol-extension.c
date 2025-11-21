@@ -66,7 +66,7 @@ RXIEXT const char *RX_Init(int opts, RL_LIB *lib) {
 	Handle_BrotliDecoder = RL_REGISTER_HANDLE_SPEC((REBYTE*)"brotli-decoder", &spec);
 
 
-	RL_REGISTER_COMPRESS_METHOD((REBYTE*)"br", CompressBrotli, DecompressBrotli);
+	RL_REGISTER_COMPRESS_METHOD(cb_cast("br"), CompressBrotli, DecompressBrotli);
 
 	return init_block;
 }
