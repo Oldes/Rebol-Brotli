@@ -7,8 +7,6 @@ github: @brotli
 
 version: 0.1.0
 
-;include:  %brotli/
-
 compiler: clang
 arch:     x64
 optimize: 2
