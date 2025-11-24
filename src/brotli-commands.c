@@ -483,7 +483,7 @@ COMMAND cmd_write(RXIFRM *frm, void *ctx) {
 
 COMMAND cmd_read(RXIFRM *frm, void *ctx) {
 	REBHOB *hob  = RXA_HANDLE(frm, 1);
-	if (TRUE || hob->data == NULL || (hob->sym != Handle_BrotliEncoder && hob->sym != Handle_BrotliDecoder)) {
+	if (hob->data == NULL || (hob->sym != Handle_BrotliEncoder && hob->sym != Handle_BrotliDecoder)) {
 		RETURN_ERROR(ERR_INVALID_HANDLE);
 	}
 
