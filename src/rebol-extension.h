@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 // File: rebol-extension.h
 // Home: https://github.com/Oldes/Rebol3/
-// Date: 18-Nov-2025/12:03:15
+// Date: 24-Nov-2025/11:43:11
 // Note: This file is amalgamated from these sources:
 //
 //       reb-c.h
@@ -895,8 +895,8 @@ enum encoding_opts {
 ************************************************************************
 **
 **  Title: Extension Types (Isolators)
-**  Build: 3.20.4
-**  Date:  18-Nov-2025
+**  Build: 3.20.5
+**  Date:  24-Nov-2025
 **  File:  ext-types.h
 **
 **  AUTO-GENERATED FILE - Do not modify. (From: make-boot.reb)
@@ -2804,16 +2804,18 @@ typedef struct Reb_All {
 ***********************************************************************/
 typedef int (*COMPRESS_FUNC)(
     const REBYTE *input,
-    size_t        in_len,
-    int           level,
-    REBSER      **output
+    REBLEN        in_len,
+	REBCNT        level,
+    REBSER      **output,
+	REBINT       *error
 );
 
 typedef int (*DECOMPRESS_FUNC)(
     const REBYTE *input,
-    size_t        in_len,
-    size_t        out_len,
-    REBSER      **output
+	REBLEN        in_len,
+	REBLEN        out_len,
+    REBSER      **output,
+	REBINT       *error
 );
 
 
@@ -3397,8 +3399,8 @@ enum {
 ************************************************************************
 **
 **  Title: Event Types
-**  Build: 3.20.4
-**  Date:  18-Nov-2025
+**  Build: 3.20.5
+**  Date:  24-Nov-2025
 **  File:  reb-evtypes.h
 **
 **  AUTO-GENERATED FILE - Do not modify. (From: make-boot.reb)
@@ -3507,8 +3509,8 @@ enum event_keys {
 ************************************************************************
 **
 **  Title: REBOL Host and Extension API
-**  Build: 3.20.4
-**  Date:  18-Nov-2025
+**  Build: 3.20.5
+**  Date:  24-Nov-2025
 **  File:  reb-lib.reb
 **
 **  AUTO-GENERATED FILE - Do not modify. (From: make-reb-lib.reb)
@@ -3520,7 +3522,7 @@ enum event_keys {
 // for compatiblity with the reb-lib DLL (using RL_Version.)
 #define RL_VER 3
 #define RL_REV 20
-#define RL_UPD 4
+#define RL_UPD 5
 
 // Compatiblity with the lib requires that structs are aligned using the same
 // method. This is concrete, not abstract. The macro below uses struct
@@ -3584,7 +3586,7 @@ typedef struct rebol_ext_api {
 	REBCNT (*encode_utf8_char)(REBYTE *dst, REBU32 chr);
 	void* (*mem_alloc)(void *opaque, size_t size);
 	void (*mem_free)(void* opaque, void* address);
-	int (*register_compress_method)(const char* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder);
+	int (*register_compress_method)(const REBYTE* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder);
 } RL_LIB;
 
 // Extension entry point functions:
@@ -4478,7 +4480,7 @@ extern RL_LIB *RL;  // is passed to the RX_Init() function
 
 #define RL_REGISTER_COMPRESS_METHOD(a,b,c) RL->register_compress_method(a,b,c)
 /*
-**	int RL_Register_Compress_Method(const char* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder)
+**	int RL_Register_Compress_Method(const REBYTE* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder)
 **
 **	Register external compression functions.
 **
@@ -4546,7 +4548,7 @@ RL_API REBSER* RL_Struct_Spec(REBCNT id);
 RL_API REBCNT RL_Encode_UTF8_Char(REBYTE *dst, REBU32 chr);
 RL_API void* RL_Mem_Alloc(void *opaque, size_t size);
 RL_API void RL_Mem_Free(void* opaque, void* address);
-RL_API int RL_Register_Compress_Method(const char* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder);
+RL_API int RL_Register_Compress_Method(const REBYTE* name, COMPRESS_FUNC encoder, DECOMPRESS_FUNC decoder);
 
 #endif
 

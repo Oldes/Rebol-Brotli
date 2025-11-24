@@ -17,8 +17,8 @@ u32* type_words;
 
 static const char* init_block = BROTLI_EXT_INIT_CODE;
 
-int CompressBrotli(const REBYTE *input, size_t len, int level, REBSER **output);
-int DecompressBrotli(const REBYTE *input, size_t len, size_t limit, REBSER **output);
+int CompressBrotli(const REBYTE *input, size_t len, int level, REBSER **output, REBINT *error);
+int DecompressBrotli(const REBYTE *input, size_t len, size_t limit, REBSER **output, REBINT *error);
 int Common_mold(REBHOB *hob, REBSER *ser);
 
 int BrotliEncHandle_free(void* hndl);
@@ -66,7 +66,7 @@ RXIEXT const char *RX_Init(int opts, RL_LIB *lib) {
 	Handle_BrotliDecoder = RL_REGISTER_HANDLE_SPEC((REBYTE*)"brotli-decoder", &spec);
 
 
-	RL_REGISTER_COMPRESS_METHOD((REBYTE*)"br", CompressBrotli, DecompressBrotli);
+	RL_REGISTER_COMPRESS_METHOD(cb_cast("br"), CompressBrotli, DecompressBrotli);
 
 	return init_block;
 }

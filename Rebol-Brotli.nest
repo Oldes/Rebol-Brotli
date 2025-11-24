@@ -126,18 +126,6 @@ r3-extension: [
 ]
 eggs: only [
 	#if Windows? [
-		"Rebol/Brotli extension - x86" [
-			name: %brotli-windows-x86
-			:r3-extension
-			:brotli-src
-			:target-x86
-		]
-		"Rebol/Brotli extension - x64" [
-			name: %brotli-windows-x64
-			:r3-extension
-			:brotli-src
-			:target-x64
-		]
 		"Make Brotli static library (cmake) - x86" [
 			arch: x86
 			name: %static-lib-x86
@@ -149,6 +137,26 @@ eggs: only [
 			name: %static-lib-x64
 			cmd %_static_x64/ "cmake ../brotli/ -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF"
 			cmd %_static_x64/ {msbuild brotli.sln /p:Configuration=Release /p:Platform=x64}
+		]
+		"Rebol/Brotli extension - x86" [
+			name: %brotli-windows-x86
+			:r3-extension
+			:target-x86
+			libraries: [
+				%_static_x86/Release/brotlicommon
+				%_static_x86/Release/brotlidec
+				%_static_x86/Release/brotlienc
+			]
+		]
+		"Rebol/Brotli extension - x64" [
+			name: %brotli-windows-x64
+			:r3-extension
+			:target-x64
+			libraries: [
+				%_static_x64/Release/brotlicommon
+				%_static_x64/Release/brotlidec
+				%_static_x64/Release/brotlienc
+			]
 		]
 	]
 	#if macOS? [

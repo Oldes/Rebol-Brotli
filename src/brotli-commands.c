@@ -30,7 +30,13 @@
 	);\
 	SERIES_TAIL(str) += len;
 
-#define RETURN_ERROR(err)  do {RXA_SERIES(frm, 1) = err; return RXR_ERROR;} while(0)
+#define RETURN_ERROR(err)  do {RXA_SERIES(frm, 1) = (void*)err; return RXR_ERROR;} while(0)
+
+static const REBYTE* ERR_INVALID_HANDLE = "Invalid Brotli encoder or decoder handle!";
+static const REBYTE* ERR_NO_DECODER = "Failed to create Brotli decoder!";
+static const REBYTE* ERR_NO_ENCODER = "Failed to create Brotli encoder!";
+static const REBYTE* ERR_NO_COMPRESS = "Failed to compress using the Brotli encoder!";
+static const REBYTE* ERR_NO_DECOMPRESS = "Failed to decompress using the Brotli decoder!";
 
 
 int Common_mold(REBHOB *hob, REBSER *str) {
@@ -153,7 +159,7 @@ COMMAND cmd_version(RXIFRM *frm, void *ctx) {
 }
 
 
-int CompressBrotli(const REBYTE *input, REBLEN len, REBCNT level, REBSER **output) {
+int CompressBrotli(const REBYTE *input, REBLEN len, REBCNT level, REBSER **output, REBINT *error) {
 // ONE-Shot API *****************************************************************
 //	int quality = MAX(0, MIN(11, level));
 //
@@ -180,7 +186,7 @@ int CompressBrotli(const REBYTE *input, REBLEN len, REBCNT level, REBSER **outpu
 	REBHOB *hob = RL_MAKE_HANDLE_CONTEXT(Handle_BrotliEncoder);
 	if (!encoder || ! hob) {
 		trace("Failed to create the Brotli encoder!");
-		return 0;
+		return FALSE;
 	}
 	hob->handle = encoder;
 
@@ -214,7 +220,7 @@ int CompressBrotli(const REBYTE *input, REBLEN len, REBCNT level, REBSER **outpu
 
 }
 
-int DecompressBrotli(const REBYTE *input, REBLEN len, REBLEN limit, REBSER **output) {
+int DecompressBrotli(const REBYTE *input, REBLEN len, REBLEN limit, REBSER **output, REBINT *error) {
 	BROTLI_BOOL res;
 	REBU64 out_len = (limit != NO_LIMIT) ? limit : len * 2;
 
@@ -226,14 +232,14 @@ int DecompressBrotli(const REBYTE *input, REBLEN len, REBLEN limit, REBSER **out
 	REBHOB *hob = RL_MAKE_HANDLE_CONTEXT(Handle_BrotliDecoder);
 	if (!decoder || ! hob) {
 		trace("Failed to create the Brotli decoder!");
-		return 0;
+		return FALSE;
 	}
 	hob->handle = decoder;
 
 	if (out_len == 0) {
 		// Return empty binary.
 		*output = RL_MAKE_BINARY(1);
-		return 1;
+		return TRUE;
 	}
 	if (out_len > MAX_I32) out_len = MAX_I32;
 	*output = RL_MAKE_BINARY((REBLEN)out_len);
@@ -269,17 +275,17 @@ int DecompressBrotli(const REBYTE *input, REBLEN len, REBLEN limit, REBSER **out
 		}
 	}
 
-	//BrotliDecHandle_free(hob);
+	BrotliDecHandle_free(hob);
 
 	if (limit != NO_LIMIT && total_size > limit) total_size = limit;
 
 	SERIES_TAIL(*output) = (REBLEN)total_size;
-	return 1;
+	return TRUE;
 
 error:
-	int error = BrotliDecoderGetErrorCode(decoder);
-	//BrotliDecHandle_free(hob);
-	return error;
+	*error = BrotliDecoderGetErrorCode(decoder);
+	BrotliDecHandle_free(hob);
+	return FALSE;
 }
 
 COMMAND cmd_compress(RXIFRM *frm, void *ctx) {
@@ -289,12 +295,12 @@ COMMAND cmd_compress(RXIFRM *frm, void *ctx) {
 	REBLEN length   = SERIES_TAIL(data) - index;
 	REBINT level    = RXA_REF(frm, 4) ? RXA_INT32(frm, 5) : 6;
 	REBSER *output  = NULL;
+	REBINT  error   = 0;
 
 	if (ref_part) length = (REBLEN)MAX(0, MIN(length, RXA_INT64(frm, 3)));
 
-	if (!CompressBrotli((const uint8_t*)BIN_SKIP(data, index), length, (REBCNT)level, &output)) {
-		trace("Failed to compress using the Brotli encoder!");
-		return RXR_ERROR;
+	if (!CompressBrotli((const uint8_t*)BIN_SKIP(data, index), length, (REBCNT)level, &output, &error)) {
+		RETURN_ERROR(ERR_NO_COMPRESS);
 	}
 
 	RXA_SERIES(frm, 1) = output;
@@ -311,14 +317,15 @@ COMMAND cmd_decompress(RXIFRM *frm, void *ctx) {
 	REBI64 length   = SERIES_TAIL(data) - index;
 	REBI64 limit    = RXA_REF(frm, 4) ? RXA_INT64(frm, 5) : NO_LIMIT;
 	REBSER *output  = NULL;
+	REBINT  error   = 0;
 
 	if (ref_part) length = MAX(0, MIN(length, RXA_INT64(frm, 3)));
-	if (length < 0 || length > MAX_I32) return RXR_ERROR;
+	if (length < 0 || length > MAX_I32) {
+		RETURN_ERROR(ERR_NO_DECOMPRESS);
+	}
 
-
-	if (!DecompressBrotli((const uint8_t*)BIN_SKIP(data, index), (REBLEN)length, (REBCNT)limit, &output)) {
-		trace("Failed to decompress using the Brotli encoder!");
-		return RXR_ERROR;
+	if (!DecompressBrotli((const uint8_t*)BIN_SKIP(data, index), (REBLEN)length, (REBCNT)limit, &output, &error)) {
+		RETURN_ERROR(ERR_NO_DECOMPRESS);
 	}
 
 	RXA_SERIES(frm, 1) = output;
@@ -333,16 +340,14 @@ COMMAND cmd_make_encoder(RXIFRM *frm, void *ctx) {
 
 	REBHOB *hob = RL_MAKE_HANDLE_CONTEXT(Handle_BrotliEncoder);
 	if (hob == NULL) {
-		RXA_SERIES(frm,1) = "Failed to make a Brotli encoder handle!";
-		return RXR_ERROR;
+		RETURN_ERROR(ERR_NO_ENCODER);
 	}
 
 	BrotliEncoderState *encoder = BrotliEncoderCreateInstance(BrotliDefaultAllocFunc, BrotliDefaultFreeFunc, NULL);
 	if (encoder == NULL) {
-		RXA_SERIES(frm,1) = "Failed to create Brotli encoder instance!";
-		return RXR_ERROR;
+		RETURN_ERROR(ERR_NO_ENCODER);
 	}
-	debug_print("enc: %p\n",encoder);
+	debug_print("enc: %p %u\n",encoder, hob->sym);
 
 	BrotliEncoderSetParameter(encoder, BROTLI_PARAM_QUALITY, MAX(0, MIN(11, level)));
 	hob->handle = encoder;
@@ -357,14 +362,12 @@ COMMAND cmd_make_encoder(RXIFRM *frm, void *ctx) {
 COMMAND cmd_make_decoder(RXIFRM *frm, void *ctx) {
 	REBHOB *hob = RL_MAKE_HANDLE_CONTEXT(Handle_BrotliDecoder);
 	if (hob == NULL) {
-		RXA_SERIES(frm,1) = "Failed to make a Brotli decoder handle!";
-		return RXR_ERROR;
+		RETURN_ERROR(ERR_NO_DECODER);
 	}
 
 	BrotliDecoderState *decoder = BrotliDecoderCreateInstance(BrotliDefaultAllocFunc, BrotliDefaultFreeFunc, NULL);
 	if (decoder == NULL) {
-		RXA_SERIES(frm,1) = "Failed to create Brotli decoder instance!";
-		return RXR_ERROR;
+		RETURN_ERROR(ERR_NO_DECODER);
 	}
 	debug_print("dec: %p\n",decoder);
 
@@ -390,8 +393,9 @@ COMMAND cmd_write(RXIFRM *frm, void *ctx) {
 	REBLEN tail;
 	REBSER *buffer;
 
-	if (hob->data == NULL || (hob->sym != Handle_BrotliEncoder && hob->sym != Handle_BrotliDecoder))
-		return RXR_ERROR;
+	if (hob->handle == NULL || !(hob->sym == Handle_BrotliEncoder || hob->sym == Handle_BrotliDecoder)) {
+		RETURN_ERROR(ERR_INVALID_HANDLE);
+	}
 
 	buffer = hob->series;
 
@@ -431,7 +435,7 @@ COMMAND cmd_write(RXIFRM *frm, void *ctx) {
 
 		BROTLI_BOOL res = BrotliEncoderCompressStream(
 				state, op,
-				&available_in,  data ? &inp : NULL,
+				&available_in,  data ? (const uint8_t **)&inp : NULL,
 				&available_out, &out, 0);
 		debug_print("ENCODE result: %u available_in: %lu available_out: %lu \n", res, available_in, available_out);
 		SERIES_TAIL(buffer) = SERIES_REST(buffer) - available_out;
@@ -446,7 +450,7 @@ COMMAND cmd_write(RXIFRM *frm, void *ctx) {
 
 		BrotliDecoderResult res = BrotliDecoderDecompressStream(
 				state,
-				&available_in,  &inp,
+				&available_in,  (const uint8_t **)&inp,
 				&available_out, &out, 0);
 		debug_print("DECODE result: %u available_in: %lu available_out: %lu\n", res, available_in, available_out);
 		SERIES_TAIL(buffer) = SERIES_REST(buffer) - available_out;
@@ -479,8 +483,9 @@ COMMAND cmd_write(RXIFRM *frm, void *ctx) {
 
 COMMAND cmd_read(RXIFRM *frm, void *ctx) {
 	REBHOB *hob  = RXA_HANDLE(frm, 1);
-	if (hob->data == NULL || (hob->sym != Handle_BrotliEncoder && hob->sym != Handle_BrotliDecoder))
-		return RXR_ERROR;
+	if (TRUE || hob->data == NULL || (hob->sym != Handle_BrotliEncoder && hob->sym != Handle_BrotliDecoder)) {
+		RETURN_ERROR(ERR_INVALID_HANDLE);
+	}
 
 	REBSER *buffer = hob->series;
 	if (!buffer) return RXR_NONE;
