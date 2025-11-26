@@ -37,6 +37,7 @@ static const REBYTE* ERR_NO_DECODER     = (const REBYTE*)"Failed to create Brotl
 static const REBYTE* ERR_NO_ENCODER     = (const REBYTE*)"Failed to create Brotli encoder!";
 static const REBYTE* ERR_NO_COMPRESS    = (const REBYTE*)"Failed to compress using the Brotli encoder!";
 static const REBYTE* ERR_NO_DECOMPRESS  = (const REBYTE*)"Failed to decompress using the Brotli decoder!";
+static const REBYTE* ERR_ENCODER_FINISHED = (const REBYTE*)"Brotli encoder is finished!";
 
 
 int Common_mold(REBHOB *hob, REBSER *str) {
@@ -73,17 +74,17 @@ int BrotliDecHandle_free(void* hndl) {
 	return 0;
 }
 int BrotliEncHandle_get_path(REBHOB *hob, REBCNT word, REBCNT *type, RXIARG *arg) {
-//	BrotliEncoderState *encoder = (BrotliEncoderState*)hob->handle;
-//	word = RL_FIND_WORD(arg_words, word);
-//	switch (word) {
-//	case W_ARG_SIZE_HINT:
-//		*type = RXT_INTEGER;
-//		arg->uint64 = 
-//		break;
-//	default:
+	BrotliEncoderState *encoder = (BrotliEncoderState*)hob->handle;
+	word = RL_FIND_WORD(arg_words, word);
+	switch (word) {
+	case W_ARG_FINISHED:
+		*type = RXT_LOGIC;
+		arg->int32a = BrotliEncoderIsFinished(encoder)?1:0;
+		break;
+	default:
 		return PE_BAD_SELECT;	
-//	}
-//	return PE_USE;
+	}
+	return PE_USE;
 }
 int BrotliEncHandle_set_path(REBHOB *hob, REBCNT word, REBCNT *type, RXIARG *arg) {
 	BrotliEncoderState *encoder = (BrotliEncoderState*)hob->handle;
@@ -111,6 +112,20 @@ int BrotliEncHandle_set_path(REBHOB *hob, REBCNT word, REBCNT *type, RXIARG *arg
 		return PE_BAD_SET;	
 	}
 	return PE_OK;
+}
+
+int BrotliDecHandle_get_path(REBHOB *hob, REBCNT word, REBCNT *type, RXIARG *arg) {
+	BrotliDecoderState *decoder = (BrotliDecoderState*)hob->handle;
+	word = RL_FIND_WORD(arg_words, word);
+	switch (word) {
+	case W_ARG_FINISHED:
+		*type = RXT_LOGIC;
+		arg->int32a = BrotliDecoderIsFinished(decoder)?1:0;
+		break;
+	default:
+		return PE_BAD_SELECT;	
+	}
+	return PE_USE;
 }
 
 
@@ -425,11 +440,16 @@ COMMAND cmd_write(RXIFRM *frm, void *ctx) {
 	}
 	
 	if (hob->sym == Handle_BrotliEncoder) {
+		BrotliEncoderState *state = (BrotliEncoderState*)hob->data;
+		if (BrotliEncoderIsFinished(state)) {
+			RETURN_ERROR(ERR_ENCODER_FINISHED);
+		}
+
 		BrotliEncoderOperation op;
 		op = ref_flush ? BROTLI_OPERATION_FLUSH : BROTLI_OPERATION_PROCESS;
 		if (ref_finish) op = BROTLI_OPERATION_FINISH;
 
-		BrotliEncoderState *state = (BrotliEncoderState*)hob->data;
+		
 		// compress..
 		debug_print("input length: %lu available_out: %lu tail_out: %lu\n", available_in, available_out, SERIES_TAIL(buffer));
 
@@ -500,20 +520,21 @@ COMMAND cmd_read(RXIFRM *frm, void *ctx) {
 	// For decompression, all data should be available in the buffer.
 	if (hob->sym == Handle_BrotliEncoder) {
 		BrotliEncoderState *state = (BrotliEncoderState*)hob->data;
-		if (!BrotliEncoderIsFinished(state)) {
-			BROTLI_BOOL res = BrotliEncoderCompressStream(
-					state, BROTLI_OPERATION_FLUSH,
-					&available_in,  NULL,
-					&available_out, &out, 0);
-			//debug_print("READ result: %u available_in: %lu available_out: %lu\n", res, available_in, available_out);
-			SERIES_TAIL(buffer) = SERIES_REST(buffer) - available_out;
-			while (BrotliEncoderHasMoreOutput(state)) {
-				size = 0;
-				const uint8_t* bin_out = BrotliEncoderTakeOutput(state, &size);
-				expand_and_copy(buffer, bin_out, size);
-			}
-			debug_print("tail: %lu\n", SERIES_TAIL(buffer));
+		if (BrotliEncoderIsFinished(state)) {
+			RETURN_ERROR(ERR_ENCODER_FINISHED);
 		}
+		BROTLI_BOOL res = BrotliEncoderCompressStream(
+				state, BROTLI_OPERATION_FLUSH,
+				&available_in,  NULL,
+				&available_out, &out, 0);
+		//debug_print("READ result: %u available_in: %lu available_out: %lu\n", res, available_in, available_out);
+		SERIES_TAIL(buffer) = SERIES_REST(buffer) - available_out;
+		while (BrotliEncoderHasMoreOutput(state)) {
+			size = 0;
+			const uint8_t* bin_out = BrotliEncoderTakeOutput(state, &size);
+			expand_and_copy(buffer, bin_out, size);
+		}
+		debug_print("tail: %lu\n", SERIES_TAIL(buffer));
 	}
 
 	// Make copy of the buffer (for safety reasons).

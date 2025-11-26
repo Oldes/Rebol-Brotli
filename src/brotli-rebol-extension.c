@@ -61,7 +61,7 @@ RXIEXT const char *RX_Init(int opts, RL_LIB *lib) {
 	spec.size      = sizeof(void*);
 	spec.flags     = HANDLE_REQUIRES_HOB_ON_FREE;
 	spec.free      = BrotliDecHandle_free;
-	//spec.get_path  = BrotliDecHandle_get_path;
+	spec.get_path  = BrotliDecHandle_get_path;
 	//spec.set_path  = BrotliDecHandle_set_path;
 	Handle_BrotliDecoder = RL_REGISTER_HANDLE_SPEC((REBYTE*)"brotli-decoder", &spec);
 

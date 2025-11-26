@@ -63,9 +63,14 @@ print as-yellow "Compress using streaming API."
 unless all [
     handle? enc: brotli/make-encoder
     ? enc
-    handle? brotli/write :enc text
-    bin3:   brotli/write :enc none
+    not enc/finished               ;; initialized encoder should not be finished
+    none?   brotli/read  :enc      ;; reading from encoder without data returns none
+    handle? brotli/write :enc text ;; feed some data
+    bin3:   brotli/write :enc none ;; finish using none value
     ? bin3
+    did enc/finished               ;; now it should be finished
+    error? try [brotli/write :enc "aaa"]  ;; writing to the already finalized encoder is not allowed!
+    error? try [brotli/read  :enc ]       ;; reading from the already finalized encoder is not allowed!
     print ["compressed size:" length? bin3]
     str3:   to string! decompress bin3 'br
     ? str3
@@ -120,6 +125,17 @@ unless all [
     ++ errors
 ]
 delete compressed-file
+
+;-----------------------------------------------------------------------
+print-horizontal-line
+print as-yellow "Validate, that support is newly mentioned in HTTP requests."
+if none? attempt [
+    ? system/schemes/http/headers/Accept-Encoding
+    find system/schemes/http/headers/Accept-Encoding ",br"
+][
+    print as-red "Brotli not found in the HTTP's Accept-Encoding."
+    ++ errors
+]
 
 ;-----------------------------------------------------------------------
 print-horizontal-line

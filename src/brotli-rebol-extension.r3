@@ -63,9 +63,11 @@ handles: make map! [
 		"Brotli encoder state handle"
 		mode        none   integer!  "Tune encoder for specific input. (0-2)"
 		size-hint   none   integer!  "Estimated total input size."
+		finished    integer!   none  "Return TRUE if encoder reached the final state."
 	]
 	brotli-decoder: [
 		"Brotli decoder state handle"
+		finished    integer!   none  "Return TRUE if decoder reached the final state."
 	]
 ]
 

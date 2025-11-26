@@ -50,7 +50,8 @@ int cmd_read(RXIFRM *frm, void *ctx);
 
 enum ma_arg_words {W_ARG_0,
 	W_ARG_MODE,
-	W_ARG_SIZE_HINT
+	W_ARG_SIZE_HINT,
+	W_ARG_FINISHED
 };
 enum ma_type_words {W_TYPE_0
 };
@@ -67,7 +68,7 @@ typedef int (*MyCommandPointer)(RXIFRM *frm, void *ctx);
 	"make-decoder: command [\"Create a new Brotli decoder handle.\"]\n"\
 	"write: command [\"Feed data into a Brotli streaming codec.\" codec [handle!] \"Brotli encoder or decoder handle.\" data [binary! any-string! none!] {Data to compress or decompress, or NONE to finish the stream.} /flush {Finish the current data block and return the encoded chunk.} /finish {Encode all remaining input and mark the stream as complete.}]\n"\
 	"read: command [{Retrieve pending encoded or decoded data from the stream.} codec [handle!] \"Brotli encoder or decoder handle.\"]\n"\
-	"init-words [mode size-hint][]\n"\
+	"init-words [mode size-hint finished][]\n"\
 	"protect/hide 'init-words\n"\
 	"\n"\
 	";; Update HTTP scheme that it's able to use the Brotli compression\n"\

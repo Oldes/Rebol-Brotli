@@ -118,10 +118,13 @@ Retrieve pending encoded or decoded data from the stream.
 ;Refinement       Gets                Sets                          Description
 /mode             none                integer!                      "Tune encoder for specific input. (0-2)"
 /size-hint        none                integer!                      "Estimated total input size."
+/finished         integer!            none                          "Return TRUE if encoder reached the final state."
 ```
 
 #### __BROTLI-DECODER__ - Brotli decoder state handle
 
 ```rebol
 ;Refinement       Gets                Sets                          Description
+/finished         integer!            none                          "Return TRUE if decoder reached the final state."
 ```
+
