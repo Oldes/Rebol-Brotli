@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Siskin Builder
-      uses: oldes/install-siskin@v0.18.5
+      uses: oldes/install-siskin@v0.20.5
 
     - name: Build 64bit static Brotli library
       run: siskin.exe Rebol-Brotli.nest static-lib-x64
@@ -25,13 +25,8 @@ jobs:
     - name: Build 64bit Rebol/Brotli extension
       run: siskin.exe Rebol-Brotli.nest -o ./brotli-windows-x64.rebx --msvc %brotli-windows-x64
 
-#    - name: Install Rebol for extension test
-#      uses: oldes/install-rebol@v3.21.0
-#      with:
-#        product: Bulk
-#
-#    - name: Minimal Rebol/Brotli extension test
-#      run:  ./rebol3 ci-test.r3
+    - name: Minimal Rebol/Brotli extension test
+      run:  siskin.exe --script ci-test.r3
 
     - uses: actions/upload-artifact@v4
       with:
@@ -45,7 +40,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Siskin Builder
-      uses: oldes/install-siskin@v0.18.5
+      uses: oldes/install-siskin@v0.20.5
 
     - name: Build 64bit Rebol/Brotli extension
       run: ./siskin Rebol-Brotli.nest %brotli-linux-x64
@@ -53,18 +48,11 @@ jobs:
     - name: Prepare 64bit Rebol Brotli extension
       run:  mv ./build/brotli-linux-x64.so ./brotli.rebx
 
-#    - name: Install Rebol for extension test
-#      uses: oldes/install-rebol@v3.21.0
-#      with:
-#        product: Bulk
-#
-#    - name: Minimal Rebol/Brotli extension test
-#      run:  ./rebol3 ci-test.r3
+    - name: Minimal Rebol/Brotli extension test
+      run:  ./siskin --script ci-test.r3
 
     - name: Compress 64bit Rebol/Brotli extension
-      run:  |
-        mv ./brotli.rebx ./brotli-linux-x64.rebx
-        gzip -9 ./brotli-linux-x64.rebx
+      run:  gzip -9 ./brotli-linux-x64.rebx
 
     - uses: actions/upload-artifact@v4
       with:
@@ -78,7 +66,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Siskin Builder
-      uses: oldes/install-siskin@v0.18.5
+      uses: oldes/install-siskin@v0.20.5
 
     - name: Build 64bit Rebol/Brotli extension
       run: ./siskin Rebol-Brotli.nest %brotli-macos-x64
@@ -92,13 +80,8 @@ jobs:
     - name: Prepare 64bit Rebol Brotli extension
       run:  mv ./build/brotli-macos-arm64.dylib ./brotli-macos-arm64.rebx
 
-#    - name: Install Rebol for extension test
-#      uses: oldes/install-rebol@v3.21.0
-#      with:
-#        product: Bulk
-#
-#    - name: Minimal Rebol/Brotli extension test
-#      run:  ./rebol3 ci-test.r3
+    - name: Minimal Rebol/Brotli extension test
+      run:  ./siskin --script ci-test.r3
 
     - name: Compress x64 Rebol/Brotli extension
       run:  gzip -9 ./brotli-macos-x64.rebx
