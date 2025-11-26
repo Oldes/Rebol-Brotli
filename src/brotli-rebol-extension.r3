@@ -4,6 +4,7 @@ REBOL [
 	home:    https://github.com/Oldes/Rebol-Brotli
 	version: 0.0.1
 	author: @Oldes
+	type:    module
 ]
 
 ;- all extension command specifications ----------------------------------------
@@ -273,7 +274,7 @@ parse commands [
 	]
 ]
 
-try/except [
+try/with [
 	readme: read/string %../README.md
 	readme: clear find/tail readme "## Extension commands:"
 	append readme ajoin [
