@@ -17,8 +17,8 @@ u32* type_words;
 
 static const char* init_block = BROTLI_EXT_INIT_CODE;
 
-int CompressBrotli(const REBYTE *input, size_t len, int level, REBSER **output, REBINT *error);
-int DecompressBrotli(const REBYTE *input, size_t len, size_t limit, REBSER **output, REBINT *error);
+int CompressBrotli(const REBYTE *input, REBLEN len, REBCNT level, REBSER **output, REBINT *error);
+int DecompressBrotli(const REBYTE *input, REBLEN len, REBLEN limit, REBSER **output, REBINT *error);
 int Common_mold(REBHOB *hob, REBSER *ser);
 
 int BrotliEncHandle_free(void* hndl);

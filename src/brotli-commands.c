@@ -32,11 +32,11 @@
 
 #define RETURN_ERROR(err)  do {RXA_SERIES(frm, 1) = (void*)err; return RXR_ERROR;} while(0)
 
-static const REBYTE* ERR_INVALID_HANDLE = "Invalid Brotli encoder or decoder handle!";
-static const REBYTE* ERR_NO_DECODER = "Failed to create Brotli decoder!";
-static const REBYTE* ERR_NO_ENCODER = "Failed to create Brotli encoder!";
-static const REBYTE* ERR_NO_COMPRESS = "Failed to compress using the Brotli encoder!";
-static const REBYTE* ERR_NO_DECOMPRESS = "Failed to decompress using the Brotli decoder!";
+static const REBYTE* ERR_INVALID_HANDLE = (const REBYTE*)"Invalid Brotli encoder or decoder handle!";
+static const REBYTE* ERR_NO_DECODER     = (const REBYTE*)"Failed to create Brotli decoder!";
+static const REBYTE* ERR_NO_ENCODER     = (const REBYTE*)"Failed to create Brotli encoder!";
+static const REBYTE* ERR_NO_COMPRESS    = (const REBYTE*)"Failed to compress using the Brotli encoder!";
+static const REBYTE* ERR_NO_DECOMPRESS  = (const REBYTE*)"Failed to decompress using the Brotli decoder!";
 
 
 int Common_mold(REBHOB *hob, REBSER *str) {

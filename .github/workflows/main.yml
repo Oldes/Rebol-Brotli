@@ -20,13 +20,13 @@ jobs:
       uses: oldes/install-siskin@v0.20.5
 
     - name: Build 64bit static Brotli library
-      run: siskin.exe Rebol-Brotli.nest static-lib-x64
+      run: ./siskin Rebol-Brotli.nest static-lib-x64
 
     - name: Build 64bit Rebol/Brotli extension
-      run: siskin.exe Rebol-Brotli.nest -o ./brotli-windows-x64.rebx --msvc %brotli-windows-x64
+      run: ./siskin Rebol-Brotli.nest -o ./brotli-windows-x64.rebx --msvc %brotli-windows-x64
 
     - name: Minimal Rebol/Brotli extension test
-      run:  siskin.exe --script ci-test.r3
+      run:  ./siskin --script ci-test.r3
 
     - uses: actions/upload-artifact@v4
       with:
@@ -46,7 +46,7 @@ jobs:
       run: ./siskin Rebol-Brotli.nest %brotli-linux-x64
 
     - name: Prepare 64bit Rebol Brotli extension
-      run:  mv ./build/brotli-linux-x64.so ./brotli.rebx
+      run:  mv ./build/brotli-linux-x64.so ./brotli-linux-x64.rebx
 
     - name: Minimal Rebol/Brotli extension test
       run:  ./siskin --script ci-test.r3
