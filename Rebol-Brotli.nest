@@ -20,8 +20,6 @@ flag:   shared
 	define: _CRT_SECURE_NO_WARNINGS
 	define: _USE_MATH_DEFINES
 	define: TO_WINDOWS
-	upx:    on
-	strip:  on
 ]
 #if Linux? [
 	compiler: gcc
@@ -130,13 +128,13 @@ eggs: only [
 			arch: x86
 			name: %static-lib-x86
 			cmd %_static_x86/ "cmake ../brotli/ -A Win32 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF"
-			cmd %_static_x86/ {msbuild brotli.sln /p:Configuration=Release /p:Platform=Win32}
+			cmd %_static_x86/ {cmake --build . --config release -j 8}
 		]
 		"Make Brotli static library (cmake) - x64" [
 			arch: x64
 			name: %static-lib-x64
 			cmd %_static_x64/ "cmake ../brotli/ -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF"
-			cmd %_static_x64/ {msbuild brotli.sln /p:Configuration=Release /p:Platform=x64}
+			cmd %_static_x64/ {cmake --build . --config release -j 8}
 		]
 		"Rebol/Brotli extension - x86" [
 			name: %brotli-windows-x86

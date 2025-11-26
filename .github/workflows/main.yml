@@ -1,10 +1,10 @@
 name: 'Rebol-Brotli CI'
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
-#  push:
-#    branches: [ master ]
-#  pull_request:
-#    branches: [ master ]
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -23,7 +23,7 @@ jobs:
       run: ./siskin Rebol-Brotli.nest static-lib-x64
 
     - name: Build 64bit Rebol/Brotli extension
-      run: ./siskin Rebol-Brotli.nest -o ./brotli-windows-x64.rebx --msvc %brotli-windows-x64
+      run: ./siskin Rebol-Brotli.nest -o ./brotli-windows-x64.rebx --msvc brotli-windows-x64
 
     - name: Minimal Rebol/Brotli extension test
       run:  ./siskin --script ci-test.r3
@@ -43,7 +43,7 @@ jobs:
       uses: oldes/install-siskin@v0.20.5
 
     - name: Build 64bit Rebol/Brotli extension
-      run: ./siskin Rebol-Brotli.nest %brotli-linux-x64
+      run: ./siskin Rebol-Brotli.nest brotli-linux-x64
 
     - name: Prepare 64bit Rebol Brotli extension
       run:  mv ./build/brotli-linux-x64.so ./brotli-linux-x64.rebx
@@ -75,7 +75,7 @@ jobs:
       run:  mv ./build/brotli-macos-x64.dylib ./brotli-macos-x64.rebx
 
     - name: Build 64bit Rebol/Brotli extension
-      run: ./siskin Rebol-Brotli.nest %brotli-macos-arm64
+      run: ./siskin Rebol-Brotli.nest brotli-macos-arm64
 
     - name: Prepare 64bit Rebol Brotli extension
       run:  mv ./build/brotli-macos-arm64.dylib ./brotli-macos-arm64.rebx
