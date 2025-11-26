@@ -6,7 +6,7 @@
 
 # Rebol/Brotli
 
-Brotli extension for [Rebol3](https://github.com/Oldes/Rebol3) (version 3.20.5 and higher)
+[Brotli](https://github.com/google/brotli) extension for [Rebol3](https://github.com/Oldes/Rebol3) (version 3.20.5 and higher)
 
 This extension provides compression and decompression functionality using the Brotli algorithm, which is a modern, efficient compression method widely used for web content.
 
