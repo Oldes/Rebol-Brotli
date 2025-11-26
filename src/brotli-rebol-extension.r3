@@ -283,11 +283,11 @@ try/with [
 		LF "## Used handles and its getters / setters" 
 		handles-doc
 		LF LF
-		LF "## Other extension values:"
-		LF "```rebol"
-		trim/tail ext-values
-		LF "```"
-		LF
+	;	LF "## Other extension values:"
+	;	LF "```rebol"
+	;	trim/tail ext-values
+	;	LF "```"
+	;	LF
 	]
 	write %../README.md head readme
 ] :print
