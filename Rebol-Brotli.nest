@@ -136,6 +136,12 @@ eggs: only [
 			cmd %_static_x64/ "cmake ../brotli/ -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF"
 			cmd %_static_x64/ {cmake --build . --config release -j 8}
 		]
+		"Make Brotli static library (cmake) - arm64" [
+			arch: arm64
+			name: %static-lib-arm64
+			cmd %_static_arm64/ "cmake ../brotli/ -A ARM64 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF"
+			cmd %_static_arm64/ {cmake --build . --config release -j 8}
+		]
 		"Rebol/Brotli extension - x86" [
 			name: %brotli-windows-x86
 			:r3-extension
@@ -154,6 +160,16 @@ eggs: only [
 				%_static_x64/Release/brotlicommon
 				%_static_x64/Release/brotlidec
 				%_static_x64/Release/brotlienc
+			]
+		]
+		"Rebol/Brotli extension - arm64" [
+			name: %brotli-windows-arm64
+			:r3-extension
+			:target-arm64
+			libraries: [
+				%_static_arm64/Release/brotlicommon
+				%_static_arm64/Release/brotlidec
+				%_static_arm64/Release/brotlienc
 			]
 		]
 	]
@@ -184,6 +200,12 @@ eggs: only [
 		]
 	]
 	#if Linux? [
+		"Rebol Brotli extension:linux_x86" [
+			name: %brotli-linux-x86
+			:r3-extension
+			:brotli-src
+			:target-x86
+		]
 		"Rebol Brotli extension:linux_x64" [
 			name: %brotli-linux-x64
 			:r3-extension
