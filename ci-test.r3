@@ -48,7 +48,7 @@ for quality 0 11 1 [
     unless all [
         time: dt [bin: brotli/compress/level text :quality]
         print ["  quality:" quality "^-compressed size:" length? bin "time:" time]
-        str: to string! brotli/decompress bin 'br
+        str: to string! brotli/decompress bin
         equal? text str
     ][
         print [as-red "Failed to compress using quality:" quality]
